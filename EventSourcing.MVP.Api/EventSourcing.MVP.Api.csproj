@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <LangVersion>10.0</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="6.3.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\EventSourcing.MVP.Domain\EventSourcing.MVP.Domain.csproj" />
+    <ProjectReference Include="..\EventSourcing.MVP.PostgreSql\EventSourcing.MVP.PostgreSql.csproj" />
+  </ItemGroup>
+
+</Project>
