@@ -7,9 +7,9 @@ namespace EventSourcing.MVP.Domain.Orders.Commands;
 
 public class CreateOrderHandler
 {
-    private readonly Repository _repository;
+    private readonly Repository<Order> _repository;
 
-    public CreateOrderHandler(Repository repository) => _repository = repository;
+    public CreateOrderHandler(Repository<Order> repository) => _repository = repository;
 
     public async Task HandleAsync(CreateOrder command, CancellationToken cancellationToken)
     {

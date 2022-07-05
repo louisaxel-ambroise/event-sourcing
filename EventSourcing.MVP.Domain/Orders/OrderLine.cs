@@ -13,6 +13,17 @@ public class OrderLine
     public DateTimeOffset? DeliveryDateLine { get; set; }
     public OrderLineStatus Status { get; set; }
 
+    public bool CanBeCollected()
+    {
+        return Status == OrderLineStatus.PutAway
+            || Status == OrderLineStatus.Expired;
+    }
+
+    internal void Collected()
+    {
+        Status = OrderLineStatus.Collected;
+    }
+
     public enum OrderLineType
     {
         Central,

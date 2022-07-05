@@ -1,5 +1,6 @@
 ﻿using EventSourcing.MVP.Infrastructure.Messaging;
 using EventSourcing.MVP.Infrastructure.Store;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -14,18 +15,21 @@ namespace EventSourcing.MVP.Infrastructure.Consumers;
 /// </summary>
 public abstract class Projection : EventConsumer
 {
+    private readonly EventHandlerRegistry _handlers = new();
+
     protected override async Task ProcessEventsAsync(IEnumerable<Event> events, CancellationToken cancellationToken)
     {
         var tasks = events
                 .Select(EventSerializer.Deserialize)
                 .Where(CanHandle)
-                .Select(HandleAsync);
+                .Select(x => HandleAsync(x, cancellationToken));
 
         Task.WaitAll(tasks.ToArray(), cancellationToken);
         await SaveChangesAsync(cancellationToken);
     }
 
-    protected abstract bool CanHandle<T>(T evt) where T : IEvent;
-    protected abstract Task HandleAsync<T>(T evt) where T : IEvent;
+    protected void Register<T>(Func<T, CancellationToken, Task> handler) where T : IEvent => _handlers.Register(handler);
+    private bool CanHandle<T>(T evt) where T : IEvent => _handlers.CanHandle(evt);
+    private Task HandleAsync<T>(T evt, CancellationToken cancellationToken) where T : IEvent => _handlers.HandleAsync(evt, cancellationToken);
     protected abstract Task SaveChangesAsync(CancellationToken cancellationToken);
 }

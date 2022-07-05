@@ -10,9 +10,9 @@ namespace EventSourcing.MVP.Infrastructure.Consumers;
 
 public abstract class EventConsumer
 {
-    public const int NoEventsDelay = 1_000;
+    public const int NoEventsDelay = 500;
     public const int FillGapDelay = 200;
-    public const int BatchSize = 1000;
+    public const int BatchSize = 1_000;
 
     private int _lastProcessedEvent;
 
@@ -36,12 +36,11 @@ public abstract class EventConsumer
                 }
 
                 await ProcessEventsAsync(events, stoppingToken);
-
                 _lastProcessedEvent = events.Max(x => x.Id);
             }
             catch
             {
-                await Task.Delay(1000, stoppingToken); // Let SQL breathe before retry.. 
+                await Task.Delay(NoEventsDelay, stoppingToken); // Let SQL breathe before retry.. 
             }
         }
     }

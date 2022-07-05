@@ -1,4 +1,5 @@
-﻿using EventSourcing.MVP.Infrastructure.Messaging;
+﻿using EventSourcing.MVP.Infrastructure.Exceptions;
+using EventSourcing.MVP.Infrastructure.Messaging;
 using System.Collections.Generic;
 using System.Reflection;
 
@@ -13,17 +14,14 @@ public abstract class AggregateRoot
 
     public void Handle(IEvent evt)
     {
-        GetType().GetMethod("HandleEvent", BindingFlags.Instance | BindingFlags.NonPublic, new[] { evt.GetType() })
-            .Invoke(this, new object[] { evt });
-    }
+        var method = GetType().GetMethod(nameof(Handle), BindingFlags.Instance | BindingFlags.NonPublic, new[] { evt.GetType() });
 
-    public AggregateRoot Apply<T>(T evt)
-        where T : IEvent
-    {
-        Handle(evt);
-        _pendingEvents.Enqueue(evt);
-
-        return this;
+        if (method is null)
+        {
+            throw new UnprocessableEventException(evt.GetType().Name);
+        }
+        
+        method.Invoke(this, new object[] { evt });
     }
 
     public IEnumerable<IEvent> GetPendingEvents()
@@ -32,5 +30,23 @@ public abstract class AggregateRoot
         {
             yield return _pendingEvents.Dequeue();
         }
+    }
+
+    protected AggregateRoot Apply(IEvent evt) 
+    {
+        Handle(evt);
+        _pendingEvents.Enqueue(evt);
+
+        return this;
+    }
+
+    protected AggregateRoot Apply(IEnumerable<IEvent> events)
+    {
+        foreach(var evt in events)
+        {
+            Apply(evt);
+        };
+
+        return this;
     }
 }

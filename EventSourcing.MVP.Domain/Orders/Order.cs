@@ -17,6 +17,7 @@ public class Order : AggregateRoot
     public CustomerInformation CustomerInformation { get; set; }
     public IList<OrderLine> OrderLines { get; set; } = new List<OrderLine>();
     public DateTime? ExpiredAt { get; set; }
+    public bool IsReadyToCollect { get; set; }
 
     public Order() { }
 
@@ -47,21 +48,40 @@ public class Order : AggregateRoot
         });
     }
 
-    public void Allocate(string username)
+    public void Allocate(string allocatedTo)
     {
         if (!string.IsNullOrEmpty(AllocatedTo)) throw new BadRequestException("Order already allocated");
 
-        Apply(new OrderAllocatedToUser { Username = username, AllocatedOn = DateTime.UtcNow });
+        Apply(new OrderAllocatedToUser { AllocatedTo = allocatedTo, AllocatedOn = DateTime.UtcNow });
     }
 
-    public void Release(string username)
+    public void Release(string releasedFrom)
     {
-        if (AllocatedTo != username) throw new BadRequestException("Order not allocated to user");
+        if (AllocatedTo != releasedFrom) throw new BadRequestException("Order not allocated to user");
 
-        Apply(new OrderReleasedFromUser { Username = username, ReleasedOn = DateTime.UtcNow });
+        Apply(new OrderReleasedFromUser { ReleasedFrom = releasedFrom, ReleasedOn = DateTime.UtcNow });
     }
 
-    internal void HandleEvent(CustomerInformationUpdated evt)
+    public void Expire(DateTime expiredAt, string expiredBy)
+    {
+        if (ExpiredAt.HasValue) throw new BadRequestException("Order already expired");
+
+        Apply(new OrderExpired { ExpiredAt = expiredAt, ExpiredBy = expiredBy });
+    }
+
+    public void Collect()
+    {
+        if(!IsReadyToCollect) throw new BadRequestException("Order not ready to be collected");
+        if(!OrderLines.Any(x => x.CanBeCollected())) throw new BadRequestException("Not valid for collection");
+
+        var events = OrderLines
+            .Where(x => x.CanBeCollected())
+            .Select(line => new OrderLineCollected { Reference = line.Reference, CollectedAt = DateTime.UtcNow });
+
+        Apply(events);
+    }
+
+    internal void Handle(CustomerInformationUpdated evt)
     {
         CustomerInformation = new()
         {
@@ -71,14 +91,14 @@ public class Order : AggregateRoot
         };
     }
 
-    internal void HandleEvent(OrderCreated evt)
+    internal void Handle(OrderCreated evt)
     {
         Site = evt.Site;
         ExpectedCarrier = evt.ExpectedCarrier;
         PlacedOn = evt.PlacedOn;
     }
 
-    internal void HandleEvent(OrderLineAdded evt)
+    internal void Handle(OrderLineAdded evt)
     {
         OrderLines.Add(new OrderLine
         {
@@ -92,13 +112,25 @@ public class Order : AggregateRoot
         });
     }
 
-    internal void HandleEvent(OrderAllocatedToUser evt)
+    internal void Handle(OrderAllocatedToUser evt)
     {
-        AllocatedTo = evt.Username;
+        AllocatedTo = evt.AllocatedTo;
     }
 
-    internal void HandleEvent(OrderReleasedFromUser _)
+    internal void Handle(OrderReleasedFromUser _)
     {
         AllocatedTo = null;
+    }
+
+    internal void Handle(OrderExpired evt)
+    {
+        ExpiredAt = evt.ExpiredAt;
+    }
+
+    internal void Handle(OrderLineCollected evt)
+    {
+        OrderLines
+            .Single(x => x.Reference == evt.Reference)
+            .Collected();
     }
 }

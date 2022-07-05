@@ -19,12 +19,16 @@ app.UseExceptionHandler(h => h.Run(ctx =>
         var exceptionHandlerPathFeature = ctx.Features.Get<IExceptionHandlerPathFeature>();
         var error = exceptionHandlerPathFeature.Error?.InnerException ?? exceptionHandlerPathFeature.Error;
 
-        ctx.Response.StatusCode = error switch
+        var (statusCode, message) = error switch
         {
-            ConcurrencyAggregateException => 409,
-            BadRequestException => 400,
-            _ => 500
+            ConcurrencyAggregateException => (409, "A concurrency exception happened"),
+            MissingAggregateException => (404, "Aggregate not found"),
+            BadRequestException => (400, "Invalid request"),
+            _ => (500, "An unexpected error occured")
         };
+
+        ctx.Response.StatusCode = statusCode;
+        ctx.Response.WriteAsJsonAsync(new { message });
 
         return Task.CompletedTask;
     })

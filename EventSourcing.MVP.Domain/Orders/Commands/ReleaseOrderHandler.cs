@@ -6,13 +6,13 @@ namespace EventSourcing.MVP.Domain.Orders.Commands;
 
 public class ReleaseOrderHandler
 {
-    private readonly Repository _repository;
+    private readonly Repository<Order> _repository;
 
-    public ReleaseOrderHandler(Repository repository) => _repository = repository;
+    public ReleaseOrderHandler(Repository<Order> repository) => _repository = repository;
 
     public async Task HandleAsync(ReleaseOrder command, CancellationToken cancellationToken)
     {
-        var order = await _repository.LoadAsync<Order>(command.OrderId, cancellationToken);
+        var order = await _repository.LoadAsync(command.OrderId, cancellationToken);
         order.Release(command.Username);
 
         await _repository.SaveAsync(order, cancellationToken);
