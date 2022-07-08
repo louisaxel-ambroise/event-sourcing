@@ -15,6 +15,7 @@ public abstract class EventConsumer
     public const int BatchSize = 1_000;
 
     private int _lastProcessedEvent;
+    private readonly EventHandlerRegistry _handlers = new();
 
     public async virtual Task InitializeAsync(CancellationToken cancellationToken)
     {
@@ -35,7 +36,7 @@ public abstract class EventConsumer
                     continue;
                 }
 
-                await ProcessEventsAsync(events, stoppingToken);
+                await ProcessEventsAsync(events.Select(EventSerializer.Deserialize).Where(CanHandle), stoppingToken);
                 _lastProcessedEvent = events.Max(x => x.Id);
             }
             catch
@@ -45,8 +46,12 @@ public abstract class EventConsumer
         }
     }
 
+    protected void Register<T>(Func<T, CancellationToken, Task> handler) where T : IEvent => _handlers.Register(handler);
+    protected bool CanHandle<T>(T evt) where T : IEvent => _handlers.CanHandle(evt);
+    protected Task HandleAsync<T>(T evt, CancellationToken cancellationToken) where T : IEvent => _handlers.HandleAsync(evt, cancellationToken);
+    
     protected abstract Task<int> GetLastProcessedEventIdAsync(CancellationToken cancellationToken);
-    protected abstract Task ProcessEventsAsync(IEnumerable<Event> events, CancellationToken cancellationToken);
+    protected abstract Task ProcessEventsAsync(IEnumerable<IEvent> events, CancellationToken cancellationToken);
 
     private async Task<IEnumerable<Event>> GetProjectionableEvents(IEventStore eventStore, CancellationToken cancellationToken)
     {

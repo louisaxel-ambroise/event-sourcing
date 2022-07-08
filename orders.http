@@ -1,0 +1,54 @@
+@hostname = localhost
+@port = 5001
+@host = https://{{hostname}}:{{port}}
+@contentType = application/json
+@orderId = 20220708-008
+
+POST {{host}}/orders
+Content-Type: {{contentType}}
+
+{
+  "id": "{{orderId}}",
+  "site": "ut occaecat consectetur qui",
+  "expectedCarrier": "dolore sit eiusmod",
+  "placedOn": "1951-09-30T14:02:26.268Z",
+  "customer": {
+    "title": "culpa id ea occaecat",
+    "name": "do aliqua dolor ipsum",
+    "searchableName": "exercitation ullamco aliqua ut"
+  },
+  "orderLines": [
+    {
+      "type": "Local",
+      "externalId": "cillum proident",
+      "reference": "tempor Ut et proid",
+      "sku": "dolor",
+      "quantity": 63993193,
+      "deliveryDeadline": "1955-08-10T12:48:46.961Z"
+    },
+    {
+      "type": "Local",
+      "externalId": "anim do laboris culpa",
+      "reference": "dolore id anim",
+      "sku": "ex ",
+      "quantity": 48341165,
+      "deliveryDeadline": "1975-02-10T17:00:20.768Z"
+    }
+  ]
+}
+
+
+PUT {{host}}/orders/{{orderId}}/allocate
+Content-Type: {{contentType}}
+
+{
+  "username": "cupidatat id labore commodo"
+}
+
+
+PUT {{host}}/orders/{{orderId}}/release
+Content-Type: {{contentType}}
+
+{
+  "username": "cupidatat id labore commodo"
+}

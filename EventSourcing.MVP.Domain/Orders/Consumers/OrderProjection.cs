@@ -9,6 +9,7 @@ namespace EventSourcing.MVP.Domain.Orders.Consumers;
 public class OrderProjection : Projection
 {
     public int Count { get; private set; }
+    private bool _updated;
 
     public OrderProjection()
     {
@@ -19,7 +20,11 @@ public class OrderProjection : Projection
 
     protected override Task SaveChangesAsync(CancellationToken cancellationToken)
     {
-        Console.WriteLine("[{0}] Number of orders: {1}", DateTime.UtcNow.ToLongTimeString(), Count);
+        if (_updated)
+        {
+            Console.WriteLine("[{0}] Number of orders: {1}", DateTime.UtcNow.ToLongTimeString(), Count);
+            _updated = false;
+        }
 
         return Task.CompletedTask;
     }
@@ -27,6 +32,7 @@ public class OrderProjection : Projection
     private Task OrderCreated(OrderCreated _, CancellationToken cancellationToken)
     {
         Count++;
+        _updated = true;
 
         return Task.CompletedTask;
     }

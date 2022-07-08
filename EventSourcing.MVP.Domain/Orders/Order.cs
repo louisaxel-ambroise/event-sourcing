@@ -76,7 +76,8 @@ public class Order : AggregateRoot
 
         var events = OrderLines
             .Where(x => x.CanBeCollected())
-            .Select(line => new OrderLineCollected { Reference = line.Reference, CollectedAt = DateTime.UtcNow });
+            .Select(line => new OrderLineCollected { Reference = line.Reference, CollectedAt = DateTime.UtcNow })
+            .ToArray();
 
         Apply(events);
     }

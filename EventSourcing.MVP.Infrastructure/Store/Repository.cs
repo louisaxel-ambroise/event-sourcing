@@ -31,8 +31,13 @@ public class Repository<T>
 
     public Task SaveAsync(T aggregateRoot, CancellationToken cancellationToken)
     {
-        var pendingEvents = Event.Create(aggregateRoot, aggregateRoot.GetPendingEvents());
+        var pendingEvents = Event.Create(aggregateRoot, aggregateRoot.PendingEvents);
 
+        if (!pendingEvents.Any())
+        {
+            return Task.CompletedTask;
+        }
+        
         return _eventStore.StoreAsync(pendingEvents, cancellationToken);
     }
 }

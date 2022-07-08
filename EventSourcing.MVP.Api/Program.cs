@@ -1,11 +1,16 @@
 using EventSourcing.MVP.Api.Modules;
 using EventSourcing.MVP.Infrastructure.Exceptions;
+using EventSourcing.MVP.Infrastructure.Store;
+using EventSourcing.MVP.Postgresql;
 using Microsoft.AspNetCore.Diagnostics;
 
 // Add services to the container.
 var builder = WebApplication.CreateBuilder(args);
+var eventStore = new PostgresqlEventStore(builder.Configuration.GetConnectionString(nameof(PostgresqlEventStore)));
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddSingleton<IEventStore>(eventStore);
 builder.RegisterOrdersModule();
 
 // Configure the HTTP request pipeline.

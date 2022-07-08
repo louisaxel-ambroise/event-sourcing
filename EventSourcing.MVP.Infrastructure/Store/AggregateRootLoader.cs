@@ -10,16 +10,8 @@ public static class AggregateRootLoader
     public static T LoadFromHistory<T>(string id, IEnumerable<IEvent> events)
       where T : AggregateRoot, new()
     {
-        return events.Aggregate(new T() { Id = id }, Replay);
-    }
+        AggregateRoot seed = new T() { Id = id };
 
-    private static TAgg Replay<TAgg, TEvt>(TAgg aggregate, TEvt evt)
-        where TAgg : AggregateRoot
-        where TEvt : IEvent
-    {
-        aggregate.Handle(evt);
-        aggregate.Version++;
-
-        return aggregate;
+        return events.Aggregate(seed, (agg, evt) => agg.Replay(evt)) as T;
     }
 }

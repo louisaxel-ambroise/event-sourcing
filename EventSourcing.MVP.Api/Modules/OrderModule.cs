@@ -2,7 +2,6 @@
 using EventSourcing.MVP.Domain.Orders.Commands;
 using EventSourcing.MVP.Domain.Orders.Consumers;
 using EventSourcing.MVP.Infrastructure.Store;
-using EventSourcing.MVP.Postgresql;
 
 namespace EventSourcing.MVP.Api.Modules;
 
@@ -23,11 +22,10 @@ public static class OrderModule
     public static WebApplicationBuilder RegisterOrdersModule(this WebApplicationBuilder builder)
     {
         EventSerializer.RegisterFromAssemblyContaining<Order>();
-        var eventStore = new PostgresqlEventStore(builder.Configuration.GetConnectionString(nameof(PostgresqlEventStore)));
 
-        builder.Services.AddHostedService(_ => new BackgroundEventConsumer<OrderProjection>(eventStore));
-        builder.Services.AddHostedService(_ => new BackgroundEventConsumer<OrderStatusEmailReaction>(eventStore));
-        builder.Services.AddSingleton(new Repository<Order>(eventStore));
+        builder.Services.AddHostedService<BackgroundEventConsumer<OrderProjection>>();
+        builder.Services.AddHostedService<BackgroundEventConsumer<OrderStatusEmailReaction>>();
+        builder.Services.AddSingleton<Repository<Order>>();
 
         return builder;
     }
@@ -35,7 +33,7 @@ public static class OrderModule
     static async Task<IResult> CreateOrder(CreateOrder command, Repository<Order> repository, CancellationToken cancellationToken)
     {
         var handler = new CreateOrderHandler(repository);
-        await handler.HandleAsync(command, cancellationToken);
+        await handler.ProcessAsync(command, cancellationToken);
 
         return Results.Accepted($"/reservation/{command.Id}");
     }
@@ -43,7 +41,7 @@ public static class OrderModule
     static async Task<IResult> UpdateCustomerInformation(string id, UpdateCustomerInformation command, Repository<Order> repository, CancellationToken cancellationToken)
     {
         var handler = new UpdateCustomerInformationHandler(repository);
-        await handler.HandleAsync(command with { OrderId = id }, cancellationToken);
+        await handler.ProcessAsync(command with { OrderId = id }, cancellationToken);
 
         return Results.NoContent();
     }
@@ -51,7 +49,7 @@ public static class OrderModule
     static async Task<IResult> AllocateOrder(string id, AllocateOrder command, Repository<Order> repository, CancellationToken cancellationToken)
     {
         var handler = new AllocateOrderHandler(repository);
-        await handler.HandleAsync(command with { OrderId = id }, cancellationToken);
+        await handler.ProcessAsync(command with { OrderId = id }, cancellationToken);
 
         return Results.NoContent();
     }
@@ -59,7 +57,7 @@ public static class OrderModule
     static async Task<IResult> ReleaseOrder(string id, ReleaseOrder command, Repository<Order> repository, CancellationToken cancellationToken)
     {
         var handler = new ReleaseOrderHandler(repository);
-        await handler.HandleAsync(command with { OrderId = id }, cancellationToken);
+        await handler.ProcessAsync(command with { OrderId = id }, cancellationToken);
 
         return Results.NoContent();
     }

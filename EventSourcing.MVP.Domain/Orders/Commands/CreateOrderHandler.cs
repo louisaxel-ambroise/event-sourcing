@@ -1,17 +1,18 @@
-﻿using EventSourcing.MVP.Infrastructure.Store;
+﻿using EventSourcing.MVP.Infrastructure.Domain;
+using EventSourcing.MVP.Infrastructure.Store;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace EventSourcing.MVP.Domain.Orders.Commands;
 
-public class CreateOrderHandler
+public class CreateOrderHandler : CommandHandler<CreateOrder>
 {
     private readonly Repository<Order> _repository;
 
     public CreateOrderHandler(Repository<Order> repository) => _repository = repository;
 
-    public async Task HandleAsync(CreateOrder command, CancellationToken cancellationToken)
+    protected override async Task HandleAsync(CreateOrder command, CancellationToken cancellationToken)
     {
         var order = new Order(command.Id, command.Site, command.ExpectedCarrier, command.PlacedOn);
         order.SetCustomerInformation(command.Customer.Title, command.Customer.Name, command.Customer.SearchableName);

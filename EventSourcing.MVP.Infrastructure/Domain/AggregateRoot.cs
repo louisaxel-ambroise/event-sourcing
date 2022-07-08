@@ -7,12 +7,36 @@ namespace EventSourcing.MVP.Infrastructure.Domain;
 
 public abstract class AggregateRoot
 {
-    private readonly Queue<IEvent> _pendingEvents = new();
+    private readonly List<IEvent> _pendingEvents = new();
 
     public string Id { get; set; }
     public int Version { get; set; }
 
-    public void Handle(IEvent evt)
+    public IEnumerable<IEvent> PendingEvents { get { return _pendingEvents.AsReadOnly(); } }
+
+    public AggregateRoot Replay(IEvent evt) 
+    {
+        Handle(evt);
+        Version++;
+
+        return this;
+    }
+
+    protected void Apply(IEvent evt)
+    {
+        Handle(evt);
+        _pendingEvents.Add(evt);
+    }
+
+    protected void Apply(IEnumerable<IEvent> events)
+    {
+        foreach(var evt in events)
+        {
+            Handle(evt);
+        };
+    }
+
+    private void Handle(IEvent evt)
     {
         var method = GetType().GetMethod(nameof(Handle), BindingFlags.Instance | BindingFlags.NonPublic, new[] { evt.GetType() });
 
@@ -20,33 +44,7 @@ public abstract class AggregateRoot
         {
             throw new UnprocessableEventException(evt.GetType().Name);
         }
-        
+
         method.Invoke(this, new object[] { evt });
-    }
-
-    public IEnumerable<IEvent> GetPendingEvents()
-    {
-        while (_pendingEvents.Count > 0)
-        {
-            yield return _pendingEvents.Dequeue();
-        }
-    }
-
-    protected AggregateRoot Apply(IEvent evt) 
-    {
-        Handle(evt);
-        _pendingEvents.Enqueue(evt);
-
-        return this;
-    }
-
-    protected AggregateRoot Apply(IEnumerable<IEvent> events)
-    {
-        foreach(var evt in events)
-        {
-            Apply(evt);
-        };
-
-        return this;
     }
 }

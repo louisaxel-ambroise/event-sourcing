@@ -1,0 +1,32 @@
+POST https://localhost:5001/orders
+Content-Type: application/json
+
+{
+  "id": "{{$guid}}",
+  "site": "ut occaecat consectetur qui",
+  "expectedCarrier": "dolore sit eiusmod",
+  "placedOn": "1951-09-30T14:02:26.268Z",
+  "customer": {
+    "title": "culpa id ea occaecat",
+    "name": "do aliqua dolor ipsum",
+    "searchableName": "exercitation ullamco aliqua ut"
+  },
+  "orderLines": [
+    {
+      "type": "Local",
+      "externalId": "cillum proident",
+      "reference": "tempor Ut et proid",
+      "sku": "dolor",
+      "quantity": 63993193,
+      "deliveryDeadline": "1955-08-10T12:48:46.961Z"
+    },
+    {
+      "type": "Local",
+      "externalId": "anim do laboris culpa",
+      "reference": "dolore id anim",
+      "sku": "ex ",
+      "quantity": 48341165,
+      "deliveryDeadline": "1975-02-10T17:00:20.768Z"
+    }
+  ]
+}
