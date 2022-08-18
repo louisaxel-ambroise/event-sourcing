@@ -9,7 +9,7 @@ namespace EventSourcing.MVP.Domain.Orders;
 
 public class Order : AggregateRoot
 {
-    public string Site { get; set; }
+    public int SiteId { get; set; }
     public string ExpectedCarrier { get; set; }
     public DateTimeOffset PlacedOn { get; set; }
     public string AllocatedTo { get; private set; }
@@ -21,10 +21,10 @@ public class Order : AggregateRoot
 
     public Order() { }
 
-    public Order(string id, string site, string expectedCarrier, DateTimeOffset placedOn)
+    public Order(string id, int siteId, string expectedCarrier, DateTimeOffset placedOn)
     {
         Id = id;
-        Apply(new OrderCreated { Site = site, ExpectedCarrier = expectedCarrier, PlacedOn = placedOn });
+        Apply(new OrderCreated { SiteId = siteId, ExpectedCarrier = expectedCarrier, PlacedOn = placedOn });
     }
 
     public void SetCustomerInformation(string title, string name, string searchableName)
@@ -94,7 +94,7 @@ public class Order : AggregateRoot
 
     internal void Handle(OrderCreated evt)
     {
-        Site = evt.Site;
+        SiteId = evt.SiteId;
         ExpectedCarrier = evt.ExpectedCarrier;
         PlacedOn = evt.PlacedOn;
     }

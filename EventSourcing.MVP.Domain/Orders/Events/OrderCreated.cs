@@ -5,7 +5,7 @@ namespace EventSourcing.MVP.Domain.Orders.Events;
 
 public class OrderCreated : IEvent
 {
-    public string Site { get; set; }
+    public int SiteId { get; set; }
     public string ExpectedCarrier { get; set; }
     public DateTimeOffset PlacedOn { get; set; }
 }

@@ -9,5 +9,5 @@ public interface IEventStore
 {
     Task<IEnumerable<Event>> LoadEventsAsync(string aggregateType, string aggregateId, CancellationToken cancellationToken);
     Task StoreAsync(IEnumerable<Event> events, CancellationToken cancellationToken);
-    Task<IEnumerable<Event>> ListEventsAsync(int startFromExclusive, int maxEventCount, CancellationToken cancellationToken);
+    Task<IEnumerable<Event>> ListEventsAsync(int startFromExclusive, int batchSize, CancellationToken cancellationToken);
 }

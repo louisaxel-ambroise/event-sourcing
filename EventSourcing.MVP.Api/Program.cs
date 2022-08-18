@@ -1,4 +1,5 @@
 using EventSourcing.MVP.Api.Modules;
+using EventSourcing.MVP.Domain.Shared;
 using EventSourcing.MVP.Infrastructure.Exceptions;
 using EventSourcing.MVP.Infrastructure.Store;
 using EventSourcing.MVP.Postgresql;
@@ -11,6 +12,7 @@ var eventStore = new PostgresqlEventStore(builder.Configuration.GetConnectionStr
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddSingleton<IEventStore>(eventStore);
+builder.Services.AddSingleton<SharedData>();
 builder.RegisterOrdersModule();
 
 // Configure the HTTP request pipeline.

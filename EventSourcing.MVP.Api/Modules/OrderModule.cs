@@ -1,6 +1,7 @@
 ﻿using EventSourcing.MVP.Domain.Orders;
 using EventSourcing.MVP.Domain.Orders.Commands;
 using EventSourcing.MVP.Domain.Orders.Consumers;
+using EventSourcing.MVP.Domain.Shared;
 using EventSourcing.MVP.Infrastructure.Store;
 
 namespace EventSourcing.MVP.Api.Modules;
@@ -30,9 +31,9 @@ public static class OrderModule
         return builder;
     }
 
-    static async Task<IResult> CreateOrder(CreateOrder command, Repository<Order> repository, CancellationToken cancellationToken)
+    static async Task<IResult> CreateOrder(CreateOrder command, Repository<Order> repository, SharedData sharedData, CancellationToken cancellationToken)
     {
-        var handler = new CreateOrderHandler(repository);
+        var handler = new CreateOrderHandler(repository, sharedData);
         await handler.ProcessAsync(command, cancellationToken);
 
         return Results.Accepted($"/reservation/{command.Id}");

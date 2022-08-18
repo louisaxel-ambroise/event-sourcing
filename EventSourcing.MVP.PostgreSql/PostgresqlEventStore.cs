@@ -30,7 +30,7 @@ public class PostgresqlEventStore : IEventStore
 
         while (await reader.ReadAsync(cancellationToken))
         {
-            result.Add(new Event
+            result.Add(new ()
             {
                 AggregateType = reader.GetString(nameof(Event.AggregateType)),
                 AggregateId = reader.GetString(nameof(Event.AggregateId)),
@@ -70,20 +70,20 @@ public class PostgresqlEventStore : IEventStore
         }
         catch (PostgresException ex) when (ex.SqlState == "23505")
         {
-            throw new ConcurrencyAggregateException();
+            throw ConcurrencyAggregateException.Instance;
         }
     }
 
-    public async Task<IEnumerable<Event>> ListEventsAsync(int startFromExclusive, int maxEventCount, CancellationToken cancellationToken)
+    public async Task<IEnumerable<Event>> ListEventsAsync(int startFromExclusive, int batchSize, CancellationToken cancellationToken)
     {
-        var result = new List<Event>(maxEventCount);
+        var result = new List<Event>(batchSize);
                 
         await using var connection = await OpenConnectionAsync(cancellationToken);
         await using var command = connection.CreateCommand();
                 
-        command.CommandText = "SELECT id, event_type AS eventtype, payload, inserted_at AS insertedat FROM public.event_log WHERE id > @startFromExclusive ORDER BY id ASC LIMIT @maxEventCount;";
+        command.CommandText = "SELECT id, event_type AS eventtype, payload, inserted_at AS insertedat FROM public.event_log WHERE id > @startFromExclusive ORDER BY id ASC LIMIT @batchSize;";
         command.Parameters.AddWithValue(nameof(startFromExclusive), startFromExclusive);
-        command.Parameters.AddWithValue(nameof(maxEventCount), maxEventCount);
+        command.Parameters.AddWithValue(nameof(batchSize), batchSize);
 
         await using var reader = await command.ExecuteReaderAsync(cancellationToken);
 
